@@ -34,7 +34,12 @@ async def read_index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post("/compare/", response_class=HTMLResponse)
+@app.post(
+    "/compare/",
+    summary="Compare two images",
+    description="Compares two images using the specified algorithm (ORB, Histogram, or Perceptual Hashing).",
+    response_class=HTMLResponse,
+)
 async def compare_images(
     request: Request,
     input1: str = Form(...),  # Получаем URL в виде строки из формы
