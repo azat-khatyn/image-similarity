@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Statistics</h2>
-<p>Below is the statistical summary for image comparisons:</p>
-{{ stats_table | safe }}
-<a href="/">Back to Home</a>
+<section>
+    <div class="inner">
+        <h2>Image Comparison Statistics</h2>
+        <p>Below is the summary of comparison results:</p>
+        {{ stats_table | safe }}
+        <ul class="actions">
+            <li><a href="/" class="button">Back to Home</a></li>
+        </ul>
+    </div>
+</section>
 {% endblock %}

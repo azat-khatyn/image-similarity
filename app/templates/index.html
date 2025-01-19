@@ -1,22 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Welcome to Image Similarity App</h2>
-<form method="post" action="/compare/">
-    <label for="input1">Image 1 URL:</label>
-    <input type="text" id="input1" name="input1" required><br><br>
-
-    <label for="input2">Image 2 URL:</label>
-    <input type="text" id="input2" name="input2" required><br><br>
-
-    <label for="method">Comparison Method:</label>
-    <select id="method" name="method">
-        <option value="orb">ORB</option>
-        <option value="hist">Histogram</option>
-    </select><br><br>
-
-    <button type="submit">Compare</button>
-</form>
-
-<a href="/stats/" class="btn btn-primary">View Statistics</a>
+<section id="banner">
+    <div class="inner">
+        <h1>Compare two images using advanced algorithms</h1>
+        <p> Provide image URLs and select comparison method below.</p>
+        <form method="post" action="/compare/">
+            <div class="fields">
+                <div class="field">
+                    <label for="input1">Image 1 URL:</label>
+                    <input type="text" id="input1" name="input1" required>
+                </div>
+                <div class="field">
+                    <label for="input2">Image 2 URL:</label>
+                    <input type="text" id="input2" name="input2" required>
+                </div>
+                <div class="field">
+                    <label for="method">Comparison Method:</label>
+                    <select id="method" name="method">
+                        <option value="orb">ORB</option>
+                        <option value="hist">Histogram</option>
+                        <option value="phash">Perceptual Hashing</option>
+                    </select>
+                </div>
+            </div>
+            <ul class="actions">
+                <li><button type="submit" class="button primary">Compare</button></li>
+            </ul>
+        </form>
+    </div>
+</section>
 {% endblock %}

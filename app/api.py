@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.crud import get_or_create_image, get_comparison, create_comparison
@@ -11,8 +12,10 @@ from app.statistics import get_statistics
 from pydantic import ValidationError
 
 app = FastAPI()
-
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+
+
 
 def get_db():
     db = SessionLocal()

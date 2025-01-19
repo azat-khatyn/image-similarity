@@ -1,11 +1,10 @@
 import cv2
 from app.utils import load_image
 from pydantic import BaseModel
-
+from PIL import Image
+import imagehash
 
 # next two classes - pattern builder
-from pydantic import BaseModel
-
 class AlgorithmParams(BaseModel):
     img1_path: str
     img2_path: str
@@ -46,9 +45,12 @@ class ComparisonAlgorithm:
             similarity = cls._compare_images_with_orb(params.img1_path, params.img2_path)
         elif params.algorithm == "hist":
             similarity = cls._compare_images_hist(params.img1_path, params.img2_path)
+        elif params.algorithm == "phash":
+            similarity = cls._compare_images_with_phash(params.img1_path, params.img2_path)
         else:
             raise Exception(f"Unknown algorithm `{params.algorithm}`!")
         return similarity
+
 
     @staticmethod
     def _compare_images_hist(img1_path: str, img2_path: str) -> float:
@@ -103,3 +105,34 @@ class ComparisonAlgorithm:
         # Вычисление оценки схожести
         score = len(matches) / max(len(kp1), len(kp2))
         return score
+
+
+    @staticmethod
+    def _compare_images_with_phash(img1_path: str, img2_path: str) -> float:
+        """
+        Сравнивает два изображения с использованием алгоритма Perceptual Hashing (pHash).
+
+        Args:
+            img1_path (str): Путь к первому изображению.
+            img2_path (str): Путь ко второму изображению.
+
+        Returns:
+            float: Значение сходства от 0 до 1 (1 означает полное совпадение).
+        """
+        try:
+            # Загружаем изображения
+            img1 = Image.open(img1_path).convert("RGB")
+            img2 = Image.open(img2_path).convert("RGB")
+
+            # Вычисляем хэши
+            hash1 = imagehash.phash(img1)
+            hash2 = imagehash.phash(img2)
+
+            # Рассчитываем расстояние Хэмминга и нормализуем
+            max_distance = len(hash1.hash) ** 2
+            distance = (hash1 - hash2)
+            similarity = 1 - (distance / max_distance)
+
+            return similarity
+        except Exception as e:
+            raise ValueError(f"Error comparing images with pHash: {e}")

@@ -7,6 +7,6 @@ class CompareRequest(BaseModel):
 
     @field_validator("method")
     def validate_method(cls, value):
-        if value not in ["orb", "hist"]:
-            raise ValueError("Invalid method. Use 'orb' or 'hist'.")
+        if value not in ["orb", "hist", "phash"]:
+            raise ValueError("Invalid method. Use 'orb', 'hist', or 'phash'")
         return value
