@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Comparison Result</h2>
+<p><strong>Image 1:</strong> {{ input1 }}</p>
+<p><strong>Image 2:</strong> {{ input2 }}</p>
+<p><strong>Method:</strong> {{ method }}</p>
+<p><strong>Similarity Score:</strong> {{ similarity_score }}</p>
+<a href="/">Compare Another</a>
+{% endblock %}
