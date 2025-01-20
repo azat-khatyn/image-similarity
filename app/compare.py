@@ -31,7 +31,6 @@ class AlgorithmParamsBuilder:
     def build(self):
         return AlgorithmParams(**self.params)
 
-
 # Применение паттерна Strategy
 class ComparisonStrategy(ABC):
     def compare(self, img1_path: str, img2_path: str) -> float:

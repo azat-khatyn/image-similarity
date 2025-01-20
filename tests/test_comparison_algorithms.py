@@ -1,4 +1,3 @@
-import pytest
 from app.compare import ORBStrategy, HistogramStrategy, PHashStrategy
 
 def test_orb_strategy():

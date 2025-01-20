@@ -31,6 +31,5 @@ class Comparison(Base):
         UniqueConstraint("image1_hash", "image2_hash", "method", name="uq_comparison"),
     )
 
-
-# Создаем таблицы
+# Создание таблицы
 Base.metadata.create_all(bind=engine)

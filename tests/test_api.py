@@ -1,4 +1,3 @@
-# import pytest
 from fastapi.testclient import TestClient
 from app.api import app
 
@@ -21,9 +20,9 @@ def test_compare_endpoint_orb():
             "method": "orb",
         },
     )
-    # Проверяем, что статус-код 200
+    # Проверка, что статус-код 200
     assert response.status_code == 200
-    # Проверяем, что ответ содержит корректный HTML
+    # Проверка, что ответ содержит корректный HTML
     assert "<!DOCTYPE html>" in response.text
     assert "<html" in response.text
 

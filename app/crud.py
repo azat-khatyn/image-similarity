@@ -6,17 +6,17 @@ def get_or_create_image(db: Session, url: str):
     """
     Получает или создает запись изображения в базе данных.
 
-    Args:
+    Аргументы:
         db (Session): Сессия базы данных.
         url (str): URL изображения.
 
-    Returns:
+    Возвращает:
         Image: Объект записи изображения.
     """
-    # Вычисляем хэш URL
+    # Вычисление хэш URL
     image_hash = hash_url(url)
 
-    # Проверяем, есть ли уже запись с таким хэшем
+    # Проверка, есть ли уже запись с таким хэшем
     image = db.query(Image).filter(Image.hash == image_hash).first()
     if not image:
         # Если записи нет, создаем новую

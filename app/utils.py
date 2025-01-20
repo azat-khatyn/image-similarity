@@ -25,16 +25,16 @@ def save_temp_file(image):
     """
     Сохраняет изображение во временный файл и возвращает путь к нему.
 
-    Args:
+    Аргументы:
         image (np.ndarray): Изображение в формате NumPy-массива.
 
-    Returns:
+    Возвращает:
         str: Путь к временному файлу.
     """
-    # Создаем временный файл
+    # Создание временного файла
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
         temp_path = tmp.name
-        # Сохраняем изображение во временный файл
+        # Сохранение изображения во временный файл
         cv2.imwrite(temp_path, image)
     return temp_path
 
@@ -43,11 +43,10 @@ def hash_url(url: str) -> str:
     """
     Хэширует URL с использованием SHA256.
 
-    Args:
+    Аргументы:
         url (str): URL для хэширования.
 
-    Returns:
+    Возвращает:
         str: Хэш в виде строки.
     """
     return hashlib.sha256(url.encode('utf-8')).hexdigest()
-

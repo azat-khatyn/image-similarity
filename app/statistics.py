@@ -6,16 +6,16 @@ def get_statistics(db: Session):
     """
     Вычисляет статистику для каждого алгоритма на основе данных из таблицы `comparisons`.
 
-    Args:
+     Аргументы:
         db (Session): Сессия базы данных.
 
-    Returns:
+    Возвращает:
         pd.DataFrame: Таблица со статистикой.
     """
-    # Получаем все записи из таблицы `comparisons`
+    # Получение всех записей из таблицы `comparisons`
     data = db.query(Comparison).all()
 
-    # Преобразуем данные в Pandas DataFrame
+    # Преобразование данных в pandas DataFrame
     records = [
         {"method": row.method, "similarity_score": row.similarity}
         for row in data
