@@ -115,15 +115,7 @@ async def compare_images(
         # Обработка любых других ошибок
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
-
-@app.post("/test/")
-async def test_endpoint(request: Request):
-    accept_header = request.headers.get("accept", "").lower()
-    print(f"Accept header received: {accept_header}")
-    if "application/json" in accept_header:
-        return JSONResponse(content={"message": "JSON response"})
-    return HTMLResponse(content="<html><body><h1>HTML response</h1></body></html>")
-
+gi
 @app.get("/stats/", response_class=HTMLResponse)
 async def stats_page(requgest: Request, db: Session = Depends(get_db)):
     """
