@@ -6,14 +6,17 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.crud import get_or_create_image, get_comparison, create_comparison
 from app.utils import load_image, save_temp_file
-from app.compare import ComparisonAlgorithm, AlgorithmParams, AlgorithmParamsBuilder
+from app.compare import ComparisonAlgorithm, AlgorithmParamsBuilder
 from app.models import CompareRequest
 from app.statistics import get_statistics
 from pydantic import ValidationError
 
+
 app = FastAPI()
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
@@ -27,10 +30,9 @@ def get_db():
     finally:
         db.close()
 
-# Укажите путь к папке с шаблонами
+# Путь к папке с шаблонами
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
-
     """
     Главная страница приложения.
     """
@@ -57,18 +59,18 @@ async def compare_images(
         raise HTTPException(status_code=400, detail="Invalid method")
 
     try:
-        # Валидируем и преобразуем входные данные в объект Pydantic
+        # Валидация и преобразование входных данные в объект Pydantic
         compare_request = CompareRequest(input1=input1, input2=input2, method=method)
 
-        # Преобразуем HttpUrl в строку
+        # Преобразование HttpUrl в строку
         input1_url = str(compare_request.input1)
         input2_url = str(compare_request.input2)
 
-        # Получаем или создаем записи изображений
+        # Получение или создание записи изображений
         image1 = get_or_create_image(db, input1_url)
         image2 = get_or_create_image(db, input2_url)
 
-        # Проверяем кэш
+        # Проверка кэша
         existing = get_comparison(db, image1.hash, image2.hash, method)
         if existing:
             return templates.TemplateResponse(
@@ -82,25 +84,23 @@ async def compare_images(
                 },
             )
 
-        # Загружаем изображения
+        # Загрузка изображения
         img1 = load_image(input1_url)
         img2 = load_image(input2_url)
 
-        # Сохраняем временные файлы
+        # Сохранение временных файлов
         img1_path = save_temp_file(img1)
         img2_path = save_temp_file(img2)
 
-        # Сравниваем изображения
+        # Сравнение изображений
         params = (AlgorithmParamsBuilder()
                   .add_img1(img1_path)
                   .add_img2(img2_path)
                   .add_algorithm(method)
                   .build())
-        # similarity = ComparisonAlgorithm.compare_images(params)
-        params = AlgorithmParams(img1_path=input1, img2_path=input2, algorithm=method)
         similarity = ComparisonAlgorithm.compare_images(params)
 
-        # Сохраняем результат
+        # Сохранение результата в базу данных
         create_comparison(db, image1.hash, image2.hash, method, similarity)
 
         return templates.TemplateResponse(
@@ -139,4 +139,3 @@ async def stats_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         "stats.html", {"request": request, "stats_table": stats_html}
     )
-

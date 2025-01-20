@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-import cv2
 from app.utils import load_image
 from pydantic import BaseModel
+import cv2
 from PIL import Image
 import imagehash
-import logging
-from pydantic import BaseModel
 
 
 #  Применение паттерна Builder
@@ -36,22 +34,28 @@ class AlgorithmParamsBuilder:
 
 # Применение паттерна Strategy
 class ComparisonStrategy(ABC):
-    @abstractmethod
     def compare(self, img1_path: str, img2_path: str) -> float:
         """
-        Сравнивает два изображения и возвращает значение сходства.
+        Загрузка изображений и делегирование специфического сравнения.
         """
-        pass
-
-# Стратегия ORB
-class ORBStrategy(ComparisonStrategy):
-    def compare(self, img1_path: str, img2_path: str) -> float:
         img1 = load_image(img1_path)
         img2 = load_image(img2_path)
 
         if img1 is None or img2 is None:
             raise ValueError("One or both images could not be loaded.")
 
+        return self._specific_compare(img1, img2)
+
+    @abstractmethod
+    def _specific_compare(self, img1, img2) -> float:
+        """
+        Реализация алгоритма сравнения для конкретной стратегии.
+        """
+        pass
+
+# Стратегия ORB
+class ORBStrategy(ComparisonStrategy):
+    def _specific_compare(self, img1: str, img2: str) -> float:
         orb = cv2.ORB_create()
         kp1, des1 = orb.detectAndCompute(img1, None)
         kp2, des2 = orb.detectAndCompute(img2, None)
@@ -65,15 +69,10 @@ class ORBStrategy(ComparisonStrategy):
 
         return len(matches) / max(len(kp1), len(kp2))
 
+
 # Стратегия гистограмм
 class HistogramStrategy(ComparisonStrategy):
-    def compare(self, img1_path: str, img2_path: str) -> float:
-        img1 = load_image(img1_path)
-        img2 = load_image(img2_path)
-
-        if img1 is None or img2 is None:
-            raise ValueError("One or both images could not be loaded.")
-
+    def _specific_compare(self, img1, img2) -> float:
         hist1 = cv2.calcHist([img1], [0], None, [256], [0, 256])
         hist2 = cv2.calcHist([img2], [0], None, [256], [0, 256])
 
@@ -84,26 +83,18 @@ class HistogramStrategy(ComparisonStrategy):
 
 # Стратегия pHash
 class PHashStrategy(ComparisonStrategy):
-    def compare(self, img1_path: str, img2_path: str) -> float:
-        try:
-            # Используем load_image для загрузки изображений
-            img1 = load_image(img1_path)
-            img2 = load_image(img2_path)
+    def _specific_compare(self, img1, img2) -> float:
+        # Преобразуем OpenCV изображение в формат, совместимый с Pillow
+        img1 = Image.fromarray(cv2.cvtColor(img1, cv2.COLOR_BGR2RGB))
+        img2 = Image.fromarray(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
 
-            # Преобразуем OpenCV изображение в формат, совместимый с Pillow
-            img1 = Image.fromarray(cv2.cvtColor(img1, cv2.COLOR_BGR2RGB))
-            img2 = Image.fromarray(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
+        # Вычисляем pHash
+        hash1 = imagehash.phash(img1)
+        hash2 = imagehash.phash(img2)
 
-            # Вычисляем pHash
-            hash1 = imagehash.phash(img1)
-            hash2 = imagehash.phash(img2)
-
-            max_distance = len(hash1.hash) ** 2
-            distance = (hash1 - hash2)
-            return 1 - (distance / max_distance)
-        except Exception as e:
-            logging.error(f"Error in pHash comparison: {e}")
-            raise ValueError(f"Error comparing images with pHash: {e}")
+        max_distance = len(hash1.hash) ** 2
+        distance = (hash1 - hash2)
+        return 1 - (distance / max_distance)
 
 # Основной класс для выбора стратегии
 class ComparisonAlgorithm:
