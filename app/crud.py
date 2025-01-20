@@ -2,11 +2,6 @@ from sqlalchemy.orm import Session
 from app.database import Image, Comparison
 from app.utils import hash_url
 
-# Работа с таблицей images
-from sqlalchemy.orm import Session
-from app.database import Image
-from app.utils import hash_url
-
 def get_or_create_image(db: Session, url: str):
     """
     Получает или создает запись изображения в базе данных.
