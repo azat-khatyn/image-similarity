@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import cv2
 from app.utils import load_image
 from pydantic import BaseModel
@@ -36,103 +37,81 @@ class AlgorithmParamsBuilder:
             algorithm=self.algorithm
         )
 
+# Абстрактный базовый класс для стратегий
+class ComparisonStrategy(ABC):
+    @abstractmethod
+    def compare(self, img1_path: str, img2_path: str) -> float:
+        """
+        Сравнивает два изображения и возвращает значение сходства.
+        """
+        pass
 
-# singleton pattern
-class ComparisonAlgorithm:
-    @classmethod
-    def compare_images(cls, params: AlgorithmParams) -> float:
-        if params.algorithm == "orb":
-            similarity = cls._compare_images_with_orb(params.img1_path, params.img2_path)
-        elif params.algorithm == "hist":
-            similarity = cls._compare_images_hist(params.img1_path, params.img2_path)
-        elif params.algorithm == "phash":
-            similarity = cls._compare_images_with_phash(params.img1_path, params.img2_path)
-        else:
-            raise Exception(f"Unknown algorithm `{params.algorithm}`!")
-        return similarity
-
-
-    @staticmethod
-    def _compare_images_hist(img1_path: str, img2_path: str) -> float:
-        """Сравнивает два изображения на основе гистограмм."""
-        # Загрузка изображений
+# Стратегия ORB
+class ORBStrategy(ComparisonStrategy):
+    def compare(self, img1_path: str, img2_path: str) -> float:
         img1 = load_image(img1_path)
         img2 = load_image(img2_path)
 
-        # Проверка наличия изображений
         if img1 is None or img2 is None:
             raise ValueError("One or both images could not be loaded.")
 
-        # Вычисление гистограмм и сравнение
+        orb = cv2.ORB_create()
+        kp1, des1 = orb.detectAndCompute(img1, None)
+        kp2, des2 = orb.detectAndCompute(img2, None)
+
+        if des1 is None or des2 is None:
+            return 0
+
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        matches = bf.match(des1, des2)
+        matches = sorted(matches, key=lambda x: x.distance)
+
+        return len(matches) / max(len(kp1), len(kp2))
+
+# Стратегия гистограмм
+class HistogramStrategy(ComparisonStrategy):
+    def compare(self, img1_path: str, img2_path: str) -> float:
+        img1 = load_image(img1_path)
+        img2 = load_image(img2_path)
+
+        if img1 is None or img2 is None:
+            raise ValueError("One or both images could not be loaded.")
+
         hist1 = cv2.calcHist([img1], [0], None, [256], [0, 256])
         hist2 = cv2.calcHist([img2], [0], None, [256], [0, 256])
 
         cv2.normalize(hist1, hist1)
         cv2.normalize(hist2, hist2)
 
-        similarity = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
-        return similarity
+        return cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
 
-    @staticmethod
-    def _compare_images_with_orb(img1_path, img2_path):
-        """Сравнение изображений с помощью ORB (ключевых точек)."""
-        # Используем load_image для загрузки изображений из локальных путей или URL
-        img1 = load_image(img1_path)
-        img2 = load_image(img2_path)
-
-        # Проверка наличия изображений
-        if img1 is None or img2 is None:
-            raise ValueError("One or both images could not be loaded.")
-
-        # Инициализация ORB
-        orb = cv2.ORB_create()
-
-        # Поиск ключевых точек и вычисление дескрипторов
-        kp1, des1 = orb.detectAndCompute(img1, None)
-        kp2, des2 = orb.detectAndCompute(img2, None)
-
-        # Проверка наличия дескрипторов
-        if des1 is None or des2 is None:
-            return 0  # Если ключевых точек недостаточно
-
-        # Матчер дескрипторов (Brute-Force)
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        matches = bf.match(des1, des2)
-
-        # Сортировка матчей по расстоянию
-        matches = sorted(matches, key=lambda x: x.distance)
-
-        # Вычисление оценки схожести
-        score = len(matches) / max(len(kp1), len(kp2))
-        return score
-
-
-    @staticmethod
-    def _compare_images_with_phash(img1_path: str, img2_path: str) -> float:
-        """
-        Сравнивает два изображения с использованием алгоритма Perceptual Hashing (pHash).
-
-        Args:
-            img1_path (str): Путь к первому изображению.
-            img2_path (str): Путь ко второму изображению.
-
-        Returns:
-            float: Значение сходства от 0 до 1 (1 означает полное совпадение).
-        """
+# Стратегия pHash
+class PHashStrategy(ComparisonStrategy):
+    def compare(self, img1_path: str, img2_path: str) -> float:
         try:
-            # Загружаем изображения
             img1 = Image.open(img1_path).convert("RGB")
             img2 = Image.open(img2_path).convert("RGB")
 
-            # Вычисляем хэши
             hash1 = imagehash.phash(img1)
             hash2 = imagehash.phash(img2)
 
-            # Рассчитываем расстояние Хэмминга и нормализуем
             max_distance = len(hash1.hash) ** 2
             distance = (hash1 - hash2)
-            similarity = 1 - (distance / max_distance)
-
-            return similarity
+            return 1 - (distance / max_distance)
         except Exception as e:
             raise ValueError(f"Error comparing images with pHash: {e}")
+
+# Основной класс для выбора стратегии
+class ComparisonAlgorithm:
+    _strategies = {
+        "orb": ORBStrategy(),
+        "hist": HistogramStrategy(),
+        "phash": PHashStrategy(),
+    }
+
+    @classmethod
+    def compare_images(cls, params):
+        strategy = cls._strategies.get(params.algorithm)
+        if not strategy:
+            raise ValueError(f"Unknown algorithm `{params.algorithm}`!")
+        return strategy.compare(params.img1_path, params.img2_path)
