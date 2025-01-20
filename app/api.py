@@ -115,7 +115,7 @@ async def compare_images(
         # Обработка любых других ошибок
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
-gi
+
 @app.get("/stats/", response_class=HTMLResponse)
 async def stats_page(requgest: Request, db: Session = Depends(get_db)):
     """
