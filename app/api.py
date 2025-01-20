@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, Form
+from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -53,6 +53,9 @@ async def compare_images(
     """
     Сравнение изображений через форму HTML.
     """
+    if method not in ["orb", "hist", "phash"]:
+        raise HTTPException(status_code=400, detail="Invalid method")
+
     try:
         # Валидируем и преобразуем входные данные в объект Pydantic
         compare_request = CompareRequest(input1=input1, input2=input2, method=method)

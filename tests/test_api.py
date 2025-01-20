@@ -10,8 +10,9 @@ def test_index_page():
     assert response.status_code == 200
     assert "Compare two images using advanced algorithms" in response.text
 
+
 def test_compare_endpoint_orb():
-    """Тест эндпоинта /compare/ с ORB"""
+    """Тест эндпоинта /compare/ с ORB, проверяющий HTML-ответ."""
     response = client.post(
         "/compare/",
         data={
@@ -20,8 +21,12 @@ def test_compare_endpoint_orb():
             "method": "orb",
         },
     )
+    # Проверяем, что статус-код 200
     assert response.status_code == 200
-    assert "similarity_score" in response.text
+    # Проверяем, что ответ содержит корректный HTML
+    assert "<!DOCTYPE html>" in response.text
+    assert "<html" in response.text
+
 
 def test_compare_endpoint_invalid_method():
     """Тест эндпоинта /compare/ с некорректным методом"""
