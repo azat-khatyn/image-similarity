@@ -7,7 +7,7 @@ from app.database import SessionLocal
 from app.crud import get_or_create_image, get_comparison, create_comparison
 from app.utils import load_image, save_temp_file
 from app.compare import ComparisonAlgorithm, AlgorithmParams, AlgorithmParamsBuilder
-from app.models import CompareRequest  # Импортируем Pydantic модель
+from app.models import CompareRequest
 from app.statistics import get_statistics
 from pydantic import ValidationError
 
@@ -15,6 +15,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    return templates.TemplateResponse("error.html", {"request": request, "message": str(exc)}, status_code=400)
 
 
 def get_db():
@@ -90,6 +93,8 @@ async def compare_images(
                   .add_img2(img2_path)
                   .add_algorithm(method)
                   .build())
+        # similarity = ComparisonAlgorithm.compare_images(params)
+        params = AlgorithmParams(img1_path=input1, img2_path=input2, algorithm=method)
         similarity = ComparisonAlgorithm.compare_images(params)
 
         # Сохраняем результат
