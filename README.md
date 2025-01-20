@@ -117,6 +117,7 @@ image-similarity/
 #### Пример запроса:
 ```bash
 curl -X POST \
+  -H "Accept: application/json" \
   -F "input1=https://example.com/image1.jpg" \
   -F "input2=https://example.com/image2.jpg" \
   -F "method=phash" \
@@ -126,11 +127,9 @@ curl -X POST \
 #### Пример ответа:
 ```json
 {
-  "input1": "https://example.com/image1.jpg",
-  "input2": "https://example.com/image2.jpg",
-  "method": "phash",
   "similarity_score": 0.85
 }
+
 ```
 
 ---
