@@ -31,8 +31,8 @@ def get_statistics(db: Session):
         count="count", max="max", min="min", mean="mean"
     ).reset_index()
 
-    fig = px.bar(stats, x="method", y="count", title="Comparison Counts by Method")
-    fig.update_layout(xaxis_title="Method", yaxis_title="Count", template="plotly_white")
+    fig = px.box(df, x="method", y="similarity_score", points="all", title="Distribution of Similarity Scores by Method")
+    fig.update_layout(xaxis_title="Method", yaxis_title="Similarity Score", template="plotly_white")
 
     # Экспорт графика в HTML
     plot_html = fig.to_html(full_html=False)
