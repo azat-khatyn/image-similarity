@@ -6,6 +6,12 @@
         <h2>Image Comparison Statistics</h2>
         <p>Below is the summary of comparison results:</p>
         {{ stats_table | safe }}
+
+        <h3>Comparison Counts by Method</h3>
+        <div>
+            {{ plot_html | safe }}
+        </div>
+
         <ul class="actions">
             <li><a href="/" class="button">Back to Home</a></li>
         </ul>

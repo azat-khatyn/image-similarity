@@ -117,15 +117,23 @@ async def compare_images(
 
 
 @app.get("/stats/", response_class=HTMLResponse)
-async def stats_page(requgest: Request, db: Session = Depends(get_db)):
+async def stats_page(request: Request, db: Session = Depends(get_db)):
     """
     Страница со статистикой.
     """
     stats_df = get_statistics(db)
-    stats_html = stats_df.to_html(index=False, classes="table table-striped")
+    stats_html = stats_df["stats_table"].to_html(index=False, classes="table table-striped")
+    stats_plot = stats_df["plot_html"]
 
     print(f"Rendered HTML:\n{stats_html}")  # Для отладки
 
     return templates.TemplateResponse(
-        "stats.html", {"request": request, "stats_table": stats_html}
+        "stats.html",
+        {
+            "request": request,
+            "stats_table":stats_html,
+            "plot_html":stats_plot
+
+
+        }
     )

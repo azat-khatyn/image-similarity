@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from app.database import Comparison
+import plotly.express as px
 
 def get_statistics(db: Session):
     """
@@ -30,4 +31,13 @@ def get_statistics(db: Session):
         count="count", max="max", min="min", mean="mean"
     ).reset_index()
 
-    return stats
+    fig = px.bar(stats, x="method", y="count", title="Comparison Counts by Method")
+    fig.update_layout(xaxis_title="Method", yaxis_title="Count", template="plotly_white")
+
+    # Экспорт графика в HTML
+    plot_html = fig.to_html(full_html=False)
+
+    return {
+        "stats_table": stats,
+        "plot_html": plot_html,
+    }
